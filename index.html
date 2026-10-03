@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Linden, coffee and bakery</title>
+<meta name="description" content="Linden is a neighbourhood coffee and bakery that changes with the light. Slide through the day, see what's on the counter and order ahead.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400..600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F0F4E4; --ink:#2A1A12; --muted:#5B4D43; --line:rgba(42,26,18,.2); --panel:#E2EACE;
+    --cherry:#C2263B; --taro:#CDBDEB; --butter:#F6E27A; --sage:#BDD39A; --focus:#B3132E;
+    --display:'Bricolage Grotesque','Arial Narrow',system-ui,sans-serif;
+    --text:'Newsreader',Georgia,'Times New Roman',serif;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#17120F; --ink:#F4EEDD; --muted:#BAB09E; --line:rgba(244,238,221,.22); --panel:#241C17; --focus:#FF8FA0;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#17120F; --ink:#F4EEDD; --muted:#BAB09E; --line:rgba(244,238,221,.22); --panel:#241C17; --focus:#FF8FA0;
+  }
+  html{scroll-behavior:smooth; scroll-padding-top:calc(env(safe-area-inset-top,0px) + 16px)}
+  *,*::before,*::after{box-sizing:border-box}
+  body{margin:0; background:var(--bg); color:var(--ink); font:400 1.1875rem/1.62 var(--text); -webkit-font-smoothing:antialiased}
+  h1,h2,h3{font-family:var(--display); font-weight:800; font-stretch:75%; letter-spacing:-.02em; line-height:.92; margin:0}
+  p{margin:0}
+  a{color:inherit}
+  button,input{font:inherit; color:inherit}
+  :focus-visible{outline:3px solid var(--focus); outline-offset:3px; border-radius:6px}
+  .wrap{max-width:1240px; margin-inline:auto; padding-inline:clamp(18px,4vw,40px)}
+  .ui{font-family:var(--display); font-weight:600; font-stretch:100%}
+  .sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+
+  .btn{
+    display:inline-block; text-decoration:none; cursor:pointer;
+    font-family:var(--display); font-weight:700; font-stretch:100%; font-size:1.02rem; letter-spacing:0;
+    border:2px solid var(--ink); background:var(--ink); color:var(--bg);
+    border-radius:999px; padding:12px 24px; transition:transform .15s ease;
+  }
+  .btn:active{transform:scale(.97)}
+  .btn.cherry{background:var(--cherry); border-color:var(--cherry); color:#fff}
+  .btn.ghost{background:transparent; color:inherit; border-color:currentColor}
+  .fchip{
+    cursor:pointer; font-family:var(--display); font-weight:600; font-stretch:100%; font-size:1rem;
+    background:transparent; border:2px solid var(--ink); color:var(--ink); border-radius:999px; padding:7px 18px;
+    transition:background-color .2s ease, color .2s ease;
+  }
+  .fchip:hover{background:var(--line)}
+  .fchip[aria-pressed="true"]{background:var(--ink); color:var(--bg)}
+
+  /* ---------- hero ---------- */
+  .hero{
+    --h-bg:#F7E4A0; --h-ink:#2A1A12; --h-soft:rgba(42,26,18,.16); --table:#FBF4DC;
+    background:var(--h-bg); color:var(--h-ink);
+    transition:background-color .7s ease, color .7s ease;
+  }
+  .hero[data-phase="midday"]{--h-bg:#C9DFA9; --table:#F1F5E4}
+  .hero[data-phase="evening"]{--h-bg:#2D1B3D; --h-ink:#F8EBD3; --h-soft:rgba(248,235,211,.2); --table:#4A3360}
+  .hero :focus-visible{outline-color:var(--h-ink)}
+  .top{display:flex; align-items:center; gap:clamp(14px,3vw,34px); padding-block:22px}
+  .brand{display:flex; align-items:center; gap:10px; text-decoration:none; font-family:var(--display); font-weight:800; font-stretch:75%; font-size:2.1rem; letter-spacing:-.02em; line-height:1}
+  .brand svg{width:30px; height:30px}
+  .nav{display:flex; gap:26px; margin-left:auto; font-family:var(--display); font-weight:600; font-stretch:100%}
+  .nav a{text-decoration:none; padding:6px 0}
+  .nav a:hover{text-decoration:underline; text-decoration-thickness:3px; text-underline-offset:6px}
+  .pill{display:inline-flex; align-items:center; gap:8px; border:2px solid var(--h-ink); border-radius:999px; padding:6px 14px; font-family:var(--display); font-weight:600; font-stretch:100%; font-size:.95rem; white-space:nowrap}
+  .pill i{width:10px; height:10px; border-radius:50%; background:#8A8A8A; display:inline-block}
+  .pill.open i{background:#2E9B54}
+  .hero-grid{display:grid; grid-template-columns:1.02fr .98fr; gap:clamp(20px,4vw,56px); align-items:center; padding-block:clamp(10px,3vw,40px) clamp(48px,7vw,96px)}
+  #txt{transition:opacity .22s ease, transform .22s ease}
+  #txt.swap{opacity:0; transform:translateY(10px)}
+  .hero h1{font-size:clamp(4rem,11vw,9rem); line-height:.84; letter-spacing:-.03em}
+  .lede{margin-top:22px; font-size:1.3rem; max-width:30ch}
+  .cta{display:flex; flex-wrap:wrap; align-items:center; gap:14px 22px; margin-top:26px}
+  .hero .btn{background:var(--h-ink); border-color:var(--h-ink); color:var(--h-bg); transition:background-color .7s, color .7s, border-color .7s, transform .15s}
+  .hero .btn.ghost{background:transparent; color:var(--h-ink)}
+  .clock{margin-top:38px; max-width:480px}
+  .clock-row{display:flex; align-items:baseline; justify-content:space-between; gap:16px}
+  .clock label{font-family:var(--display); font-weight:600; font-stretch:100%}
+  .clock output{font-family:var(--display); font-weight:800; font-stretch:75%; font-size:clamp(2.4rem,5vw,3.5rem); line-height:1; font-variant-numeric:tabular-nums}
+  .range{
+    -webkit-appearance:none; appearance:none; width:100%; height:12px; border-radius:999px; margin:16px 0 8px; cursor:pointer;
+    background:linear-gradient(to right, var(--h-ink) var(--pct,20%), var(--h-soft) var(--pct,20%));
+  }
+  .range::-webkit-slider-thumb{-webkit-appearance:none; width:38px; height:38px; border-radius:50%; background:var(--h-ink); border:5px solid var(--h-bg); box-shadow:0 0 0 2px var(--h-ink)}
+  .range::-moz-range-thumb{width:28px; height:28px; border-radius:50%; background:var(--h-ink); border:5px solid var(--h-bg); box-shadow:0 0 0 2px var(--h-ink)}
+  .range::-moz-range-track{background:transparent}
+  .ticks{display:flex; justify-content:space-between; font-size:.95rem; opacity:.8}
+  .linkbtn{background:none; border:0; padding:0; cursor:pointer; font-family:var(--display); font-weight:600; font-stretch:100%; text-decoration:underline; text-underline-offset:4px; text-decoration-thickness:2px}
+
+  .table-wrap{width:min(100%,600px); margin-inline:auto; filter:drop-shadow(0 30px 36px rgba(20,10,0,.22))}
+  #scene{display:block; width:100%; height:auto; overflow:visible}
+  .tabletop{fill:var(--table); transition:fill .7s ease}
+  #light{transition:opacity .6s ease}
+  #glowC{transition:opacity .8s ease; opacity:0}
+  .set{opacity:0; visibility:hidden; transition:opacity .5s ease, visibility 0s linear .5s}
+  .set.on{opacity:1; visibility:visible; transition:opacity .5s ease}
+  .obj{transform-box:fill-box; transform-origin:center}
+  .set.on .obj{animation:settle .8s cubic-bezier(.2,.8,.2,1) both; animation-delay:calc(var(--i) * 110ms)}
+  @keyframes settle{from{opacity:0; transform:translateY(-26px) scale(1.07)}to{opacity:1; transform:none}}
+
+  /* ---------- sections ---------- */
+  section{padding-block:clamp(64px,9vw,120px)}
+  .h2{font-size:clamp(2.8rem,6.4vw,5.4rem); line-height:.88; max-width:14ch}
+  .sec-p{margin-top:18px; max-width:44ch; color:var(--muted); font-size:1.25rem}
+
+  /* menu */
+  .menu-head{display:flex; flex-wrap:wrap; gap:26px 48px; justify-content:space-between; align-items:flex-end}
+  .time-jump{display:flex; flex-direction:column; gap:10px}
+  .time-jump p{font-family:var(--display); font-weight:600; font-stretch:100%; font-size:1rem}
+  .time-jump .chips{display:flex; flex-wrap:wrap; gap:8px}
+  .tabs{display:flex; flex-wrap:wrap; gap:6px 30px; margin-top:44px; border-bottom:1px solid var(--line); padding-bottom:12px}
+  .tab{background:none; border:0; cursor:pointer; padding:2px 0; font-family:var(--display); font-weight:800; font-stretch:75%; font-size:2rem; letter-spacing:-.01em; color:var(--muted)}
+  .tab[aria-selected="true"]{color:var(--ink); text-decoration:underline; text-decoration-color:var(--cherry); text-decoration-thickness:6px; text-underline-offset:6px}
+  .menu-list{list-style:none; margin:10px 0 0; padding:0; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:clamp(28px,6vw,80px)}
+  .mi{padding:22px 0; border-bottom:1px solid var(--line)}
+  .mi-top{display:flex; justify-content:space-between; align-items:baseline; gap:16px}
+  .mi h3{font-size:1.65rem; font-stretch:85%; line-height:1; letter-spacing:-.01em}
+  .mi-price{font-family:var(--display); font-weight:700; font-stretch:100%; font-variant-numeric:tabular-nums}
+  .mi-desc{margin-top:6px; color:var(--muted); max-width:44ch; font-style:italic}
+  .mi-foot{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:12px; min-height:38px}
+  .mi-note{font-family:var(--display); font-weight:500; font-stretch:100%; font-size:.95rem; color:var(--muted)}
+  .mi.off{opacity:.5}
+  .add{cursor:pointer; font-family:var(--display); font-weight:700; font-stretch:100%; background:transparent; border:2px solid var(--ink); border-radius:999px; padding:5px 18px}
+  .add:hover{background:var(--ink); color:var(--bg)}
+  .stepper{display:inline-flex; align-items:center; background:var(--ink); color:var(--bg); border-radius:999px; overflow:hidden}
+  .stepper button{width:38px; height:34px; border:0; background:transparent; color:inherit; cursor:pointer; font-size:1.25rem; font-weight:700}
+  .stepper button:hover{background:rgba(128,128,128,.3)}
+  .stepper output{min-width:26px; text-align:center; font-family:var(--display); font-weight:700}
+  .empty{grid-column:1/-1; padding:28px 0; color:var(--muted)}
+
+  /* bag */
+  .bag-pill{
+    position:fixed; left:50%; bottom:calc(18px + env(safe-area-inset-bottom,0px)); z-index:40; transform:translateX(-50%);
+    display:flex; align-items:center; gap:16px; white-space:nowrap; max-width:calc(100% - 24px);
+    background:var(--cherry); color:#fff; border-radius:999px; padding:8px 8px 8px 22px;
+    box-shadow:0 12px 30px rgba(0,0,0,.3); font-family:var(--display); font-weight:700; font-stretch:100%;
+    animation:pillIn .3s ease;
+  }
+  .bag-pill[hidden]{display:none}
+  .bag-pill button{cursor:pointer; background:#fff; color:#2A1A12; border:0; border-radius:999px; padding:9px 18px; font-family:var(--display); font-weight:700}
+  @keyframes pillIn{from{transform:translate(-50%,24px); opacity:0}to{transform:translate(-50%,0); opacity:1}}
+  dialog{border:0; border-radius:22px; padding:0; width:min(520px,calc(100% - 28px)); background:var(--bg); color:var(--ink); max-height:calc(100% - 40px)}
+  dialog::backdrop{background:rgba(20,10,0,.55)}
+  .dlg{padding:26px 26px 28px}
+  .dlg h3{font-size:2.4rem}
+  .dlg .x{position:absolute; top:14px; right:14px; cursor:pointer; border:2px solid var(--ink); background:transparent; border-radius:999px; width:38px; height:38px; font-size:1.2rem; line-height:1}
+  .bag-list{list-style:none; margin:18px 0 0; padding:0}
+  .bag-list li{display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--line)}
+  .bag-list .n{flex:1; font-family:var(--display); font-weight:600; font-stretch:100%}
+  .total{display:flex; justify-content:space-between; margin-top:14px; font-family:var(--display); font-weight:800; font-stretch:100%; font-size:1.2rem}
+  fieldset{border:0; margin:22px 0 0; padding:0}
+  legend{font-family:var(--display); font-weight:700; font-stretch:100%; margin-bottom:8px; padding:0}
+  .radios{display:grid; gap:8px}
+  .radios label{display:flex; align-items:center; gap:10px; cursor:pointer}
+  .radios input{accent-color:var(--cherry); width:20px; height:20px}
+  .fld{display:block; margin-top:18px}
+  .fld span{display:block; font-family:var(--display); font-weight:700; font-stretch:100%; margin-bottom:6px}
+  .fld input{width:100%; border:2px solid var(--ink); background:transparent; border-radius:12px; padding:11px 14px}
+  .err{background:#FFE0E5; color:#6E1022; border-radius:10px; padding:9px 14px; margin-top:14px; font-family:var(--display); font-weight:600; font-stretch:100%}
+  .err[hidden]{display:none}
+  .dlg .btn{margin-top:20px; width:100%; text-align:center}
+  .dlg .note{color:var(--muted); margin-top:10px; font-size:1rem}
+
+  /* corners */
+  .arches{display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(18px,3vw,40px); margin-top:56px; align-items:start}
+  .arch-card:nth-child(2){margin-top:56px}
+  .arch{border-radius:999px 999px 26px 26px; overflow:hidden; aspect-ratio:3/4}
+  .arch svg{display:block; width:100%; height:100%}
+  .arch-card h3{font-size:1.9rem; font-stretch:85%; margin-top:18px; line-height:1}
+  .arch-card p{margin-top:8px; color:var(--muted); max-width:30ch}
+
+  /* story */
+  .story{background:var(--taro); color:#2A1A12; position:relative; overflow:hidden}
+  .story .h2{max-width:16ch; font-size:clamp(3rem,8vw,7rem)}
+  .story-cols{display:grid; grid-template-columns:1fr 1fr; gap:clamp(24px,5vw,72px); margin-top:44px; max-width:880px}
+  .story-cols p{font-size:1.25rem}
+  .leaf{position:absolute; right:clamp(-60px,-2vw,0px); bottom:-60px; width:clamp(220px,34vw,440px); opacity:.9; pointer-events:none}
+
+  /* regulars */
+  .quotes{display:grid; grid-template-columns:1.25fr 1fr; gap:0 clamp(28px,6vw,90px); margin-top:48px}
+  .quote{padding:26px 0; border-top:1px solid var(--line)}
+  .quote.big{grid-row:span 2; border-top:2px solid var(--ink)}
+  .quote blockquote{margin:0; font-style:italic; font-size:1.5rem; line-height:1.4}
+  .quote.big blockquote{font-size:clamp(1.9rem,3.4vw,2.8rem); line-height:1.2}
+  .quote figcaption{margin-top:14px; font-family:var(--display); font-weight:600; font-stretch:100%; font-size:1rem; color:var(--muted)}
+  .quote{margin-inline:0}
+
+  /* visit */
+  .visit-grid{display:grid; grid-template-columns:1fr 1fr; gap:clamp(28px,6vw,90px); margin-top:44px}
+  .hours{list-style:none; margin:0; padding:0; font-family:var(--display); font-weight:500; font-stretch:100%}
+  .hours li{display:flex; justify-content:space-between; gap:20px; padding:12px 0 12px 14px; border-bottom:1px solid var(--line); border-left:6px solid transparent}
+  .hours li[aria-current="date"]{border-left-color:var(--cherry); font-weight:800}
+  .visit address{font-style:normal; font-size:1.5rem; line-height:1.4}
+  .visit .pill{margin-bottom:18px; color:var(--ink); border-color:var(--ink)}
+  .visit .small{color:var(--muted); margin-top:16px}
+  .visit .btn{margin-top:22px}
+
+  footer{overflow:hidden; padding-top:30px}
+  .foot-row{display:flex; flex-wrap:wrap; justify-content:space-between; gap:10px 24px; color:var(--muted); font-size:1rem}
+  .giant{font-family:var(--display); font-weight:800; font-stretch:75%; font-size:clamp(8rem,31vw,28rem); line-height:.74; letter-spacing:-.04em; color:var(--taro); text-align:center; margin-top:28px; padding-bottom:.02em; user-select:none}
+
+  @media (max-width:900px){
+    .nav{display:none}
+    .top .pill{margin-left:auto}
+    .hero-grid{grid-template-columns:1fr}
+    .table-wrap{width:min(88%,460px)}
+    .menu-list{grid-template-columns:1fr}
+    .arches{grid-template-columns:1fr; max-width:420px; margin-inline:auto}
+    .arch-card:nth-child(2){margin-top:0}
+    .story-cols,.quotes,.visit-grid{grid-template-columns:1fr}
+    .quote.big{grid-row:auto}
+  }
+  @media (max-width:520px){
+    .top .pill{display:none}
+    .top .btn{margin-left:auto; padding:9px 18px}
+    .bag-pill{gap:12px; padding-left:18px}
+  }
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto}
+    *,*::before,*::after{transition:none !important; animation:none !important}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero" id="hero" data-phase="morning">
+  <div class="wrap">
+    <div class="top">
+      <a class="brand" href="#hero" aria-label="Linden, back to top">
+        <svg viewBox="-40 -42 80 90" aria-hidden="true"><path d="M0 40 C-34 14 -34 -22 -12 -26 C-4 -27 0 -22 0 -16 C0 -22 4 -27 12 -26 C34 -22 34 14 0 40 Z" fill="currentColor"/></svg>
+        linden
+      </a>
+      <nav class="nav" aria-label="Main">
+        <a href="#menu">Menu</a>
+        <a href="#corners">Corners</a>
+        <a href="#regulars">Regulars</a>
+        <a href="#visit">Visit</a>
+      </nav>
+      <span class="pill" id="openPill"><i></i><span></span></span>
+      <a class="btn" href="#menu">Order ahead</a>
+    </div>
+
+    <div class="hero-grid">
+      <div>
+        <div id="txt">
+          <h1 id="hl">slow<br>mornings.</h1>
+          <p class="lede" id="lede">Pastries come out of the oven from seven. Coffee starts with the first shot.</p>
+        </div>
+        <div class="cta">
+          <a class="btn" href="#menu">See what's on</a>
+          <a class="btn ghost" href="#visit">Find us</a>
+        </div>
+        <div class="clock">
+          <div class="clock-row">
+            <label for="range">Slide through the day</label>
+            <output id="clockOut" for="range">9:00 am</output>
+          </div>
+          <input class="range" id="range" type="range" min="14" max="42" step="1" value="18" aria-label="Time of day">
+          <div class="ticks" aria-hidden="true"><span>7 am</span><span>2 pm</span><span>9 pm</span></div>
+          <p style="margin-top:12px"><button type="button" class="linkbtn" id="nowBtn">Set to the time right now</button></p>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <svg id="scene" viewBox="0 0 560 560" role="img" aria-label="A top-down view of a round terrazzo cafe table. The food and drinks on it change with the time of day you choose.">
+          <defs>
+            <clipPath id="tclip"><circle cx="280" cy="280" r="270"/></clipPath>
+            <filter id="sh" x="-30%" y="-30%" width="170%" height="170%"><feDropShadow id="shd" dx="10" dy="10" stdDeviation="6" flood-color="#2A1A12" flood-opacity=".28"/></filter>
+            <filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="9"/></filter>
+            <radialGradient id="glow"><stop offset="0" stop-color="#FFC970" stop-opacity=".85"/><stop offset="1" stop-color="#FFC970" stop-opacity="0"/></radialGradient>
+          </defs>
+          <circle class="tabletop" cx="280" cy="280" r="270"/>
+          <g clip-path="url(#tclip)">
+            <g id="chips"></g>
+            <g id="light" style="opacity:.4"><g filter="url(#soft)"><g id="panes" transform="skewX(-12)" fill="#FFF6D2">
+              <rect x="110" y="10" width="150" height="250"/><rect x="280" y="10" width="150" height="250"/>
+              <rect x="110" y="280" width="150" height="270"/><rect x="280" y="280" width="150" height="270"/>
+            </g></g></g>
+            <circle id="glowC" cx="420" cy="190" r="270" fill="url(#glow)"/>
+          </g>
+          <circle cx="280" cy="280" r="269" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="3"/>
+
+          <!-- morning -->
+          <g class="set on" data-set="morning" filter="url(#sh)">
+            <g class="obj" style="--i:0">
+              <circle cx="210" cy="300" r="96" fill="#FFFFFF" stroke="#E5DFD0" stroke-width="2"/>
+              <g transform="rotate(28 300 372)"><rect x="296" y="334" width="7" height="60" rx="3.5" fill="#C9C4B8"/><ellipse cx="299.5" cy="327" rx="12" ry="16" fill="#D8D3C7"/></g>
+              <rect x="262" y="290" width="54" height="22" rx="11" fill="#FAF7F0" stroke="#E5DFD0" stroke-width="2"/>
+              <circle cx="210" cy="300" r="64" fill="#FAF7F0" stroke="#E5DFD0" stroke-width="2"/>
+              <circle cx="210" cy="300" r="52" fill="#7A4A2E"/>
+              <g id="heart"><path d="M210 328 C188 310 178 298 178 285 C178 272 187 265 197 265 C203 265 208 268 210 273 C212 268 217 265 223 265 C233 265 242 272 242 285 C242 298 232 310 210 328 Z" fill="#FFF4DE"/>
+              <path transform="translate(210 295) scale(.66) translate(-210 -295)" d="M210 328 C188 310 178 298 178 285 C178 272 187 265 197 265 C203 265 208 268 210 273 C212 268 217 265 223 265 C233 265 242 272 242 285 C242 298 232 310 210 328 Z" fill="#7A4A2E"/>
+              <path transform="translate(210 297) scale(.36) translate(-210 -297)" d="M210 328 C188 310 178 298 178 285 C178 272 187 265 197 265 C203 265 208 268 210 273 C212 268 217 265 223 265 C233 265 242 272 242 285 C242 298 232 310 210 328 Z" fill="#FFF4DE"/></g>
+            </g>
+            <g class="obj" style="--i:1" transform="translate(372 404) rotate(-24)">
+              <ellipse cx="-96" cy="22" rx="17" ry="11" fill="#D9963F"/><ellipse cx="96" cy="22" rx="17" ry="11" fill="#D9963F"/>
+              <ellipse cx="-68" cy="10" rx="25" ry="16" fill="#E3A24A" stroke="#B8742A" stroke-width="2"/><ellipse cx="68" cy="10" rx="25" ry="16" fill="#E3A24A" stroke="#B8742A" stroke-width="2"/>
+              <ellipse cx="-34" cy="2" rx="33" ry="22" fill="#EBAE58" stroke="#B8742A" stroke-width="2"/><ellipse cx="34" cy="2" rx="33" ry="22" fill="#EBAE58" stroke="#B8742A" stroke-width="2"/>
+              <ellipse cx="0" cy="-2" rx="38" ry="26" fill="#F1BA66" stroke="#B8742A" stroke-width="2"/>
+              <g fill="none" stroke="#C9822F" stroke-width="3" stroke-linecap="round" opacity=".7"><path d="M-14 -18 Q-6 -2 -14 14"/><path d="M12 -18 Q20 -2 12 14"/><path d="M-50 -10 Q-44 2 -50 12"/><path d="M52 -8 Q58 2 52 12"/></g>
+            </g>
+            <g class="obj" style="--i:2">
+              <circle cx="410" cy="150" r="46" fill="#FFFFFF" stroke="#E5DFD0" stroke-width="2"/>
+              <rect x="388" y="136" width="44" height="28" rx="8" fill="#FFE58A" stroke="#E9C95C" stroke-width="2"/>
+              <rect x="396" y="141" width="14" height="5" rx="2.5" fill="#FFF3B5"/>
+            </g>
+          </g>
+
+          <!-- midday -->
+          <g class="set" data-set="midday" filter="url(#sh)">
+            <g class="obj" style="--i:0">
+              <circle cx="210" cy="300" r="62" fill="rgba(255,255,255,.6)" stroke="#FFFFFF" stroke-width="3"/>
+              <circle cx="210" cy="300" r="52" fill="#C79A6E"/>
+              <ellipse cx="206" cy="304" rx="34" ry="26" fill="#E9D2B3" opacity=".55"/>
+              <g fill="rgba(255,255,255,.78)" stroke="#FFFFFF" stroke-width="2"><rect x="184" y="276" width="24" height="24" rx="6" transform="rotate(14 196 288)"/><rect x="216" y="292" width="24" height="24" rx="6" transform="rotate(-18 228 304)"/><rect x="190" y="306" width="24" height="24" rx="6" transform="rotate(30 202 318)"/><rect x="220" y="266" width="22" height="22" rx="6" transform="rotate(8 231 277)"/></g>
+              <path d="M216 296 L258 238" stroke="#C2263B" stroke-width="10" stroke-linecap="round"/><path d="M219 291 L252 246" stroke="#E86A7B" stroke-width="3" stroke-linecap="round"/>
+            </g>
+            <g class="obj" style="--i:1">
+              <circle cx="385" cy="400" r="92" fill="#FFFFFF" stroke="#E5DFD0" stroke-width="2"/>
+              <g transform="translate(385 400) rotate(-12)">
+                <rect x="-62" y="-60" width="124" height="52" rx="20" fill="#E3B55E" stroke="#B8832F" stroke-width="2"/>
+                <g fill="#C9953D"><circle cx="-36" cy="-42" r="4"/><circle cx="-12" cy="-30" r="4"/><circle cx="14" cy="-44" r="4"/><circle cx="38" cy="-32" r="4"/><circle cx="2" cy="-18" r="3"/></g>
+                <g stroke="#5C8F46" stroke-width="3" stroke-linecap="round"><path d="M-24 -50 l10 6"/><path d="M26 -52 l-9 7"/></g>
+                <rect x="-62" y="6" width="124" height="16" rx="9" fill="#E3B55E" stroke="#B8832F" stroke-width="2"/>
+                <path d="M-59 22 q10 8 20 0 t20 0 t20 0 t20 0 t20 0 t19 0 V30 H-59Z" fill="#7DB45B"/>
+                <rect x="-59" y="30" width="118" height="9" fill="#C2263B"/><rect x="-59" y="39" width="118" height="8" fill="#F6E27A"/>
+                <rect x="-62" y="47" width="124" height="14" rx="9" fill="#E3B55E" stroke="#B8832F" stroke-width="2"/>
+              </g>
+            </g>
+            <g class="obj" style="--i:2">
+              <circle cx="425" cy="165" r="32" fill="#F6E27A" stroke="#E3C84F" stroke-width="3"/><circle cx="425" cy="165" r="25" fill="#FBF0A5"/>
+              <g stroke="#F6E27A" stroke-width="3"><path d="M425 140 V190"/><path d="M400 165 H450"/><path d="M407 147 L443 183"/><path d="M443 147 L407 183"/></g>
+            </g>
+          </g>
+
+          <!-- evening -->
+          <g class="set" data-set="evening" filter="url(#sh)">
+            <g class="obj" style="--i:0">
+              <circle cx="210" cy="300" r="62" fill="rgba(255,255,255,.14)" stroke="rgba(255,255,255,.55)" stroke-width="3"/>
+              <circle cx="210" cy="300" r="48" fill="#8F2D46"/>
+              <path d="M178 290 A36 36 0 0 1 214 264" stroke="#FFFFFF" stroke-opacity=".5" stroke-width="6" fill="none" stroke-linecap="round"/>
+              <ellipse cx="226" cy="318" rx="14" ry="8" fill="#B8435F" opacity=".7"/>
+            </g>
+            <g class="obj" style="--i:1">
+              <circle cx="380" cy="410" r="90" fill="#F3EEE0" stroke="#D8D0BE" stroke-width="2"/>
+              <g transform="translate(380 410)">
+                <g fill="#D9B77C" stroke="#BF9A5E" stroke-width="2"><rect x="20" y="-62" width="28" height="28" rx="4" transform="rotate(14 34 -48)"/><rect x="48" y="-40" width="28" height="28" rx="4" transform="rotate(-10 62 -26)"/></g>
+                <path d="M6 6 L60 18 L10 46 Z" fill="#F3D66B" stroke="#D9B83F" stroke-width="2"/><circle cx="24" cy="20" r="3.5" fill="#E3C24C"/><circle cx="14" cy="32" r="2.5" fill="#E3C24C"/>
+                <path d="M-58 24 L-16 16 L-34 54 Z" fill="#FBEDB0" stroke="#E3C95F" stroke-width="2"/>
+                <g fill="#556B2F"><circle cx="-34" cy="-24" r="12"/><circle cx="-10" cy="-40" r="12"/><circle cx="-8" cy="-12" r="12"/><circle cx="-50" cy="0" r="12"/></g>
+                <g fill="#C2263B"><circle cx="-31" cy="-24" r="4"/><circle cx="-7" cy="-40" r="4"/><circle cx="-5" cy="-12" r="4"/><circle cx="-47" cy="0" r="4"/></g>
+              </g>
+            </g>
+            <g class="obj" style="--i:2">
+              <circle cx="420" cy="190" r="28" fill="#D8D4CC"/><circle cx="420" cy="190" r="19" fill="#FFF1D0"/>
+              <circle cx="420" cy="190" r="13" fill="rgba(255,200,90,.55)"/><circle cx="420" cy="190" r="6" fill="#FFB84A"/>
+            </g>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section id="menu">
+    <div class="wrap">
+      <div class="menu-head">
+        <div>
+          <h2 class="h2">what's on, and when.</h2>
+          <p class="sec-p">Our kitchen changes with the light. Pick a time and the menu shows what we're serving then.</p>
+        </div>
+        <div class="time-jump">
+          <p>Showing the menu at <span id="mClock">9:00 am</span></p>
+          <div class="chips" role="group" aria-label="Jump to a time of day">
+            <button type="button" class="fchip" data-jump="morning" aria-pressed="true">Morning</button>
+            <button type="button" class="fchip" data-jump="midday" aria-pressed="false">Lunch</button>
+            <button type="button" class="fchip" data-jump="evening" aria-pressed="false">Evening</button>
+          </div>
+        </div>
+      </div>
+      <div class="tabs" role="tablist" aria-label="Menu sections" id="tabs"></div>
+      <ul class="menu-list" id="menuList" role="tabpanel" aria-live="polite"></ul>
+    </div>
+  </section>
+
+  <section id="corners" style="background:var(--panel)">
+    <div class="wrap">
+      <h2 class="h2">corners worth a seat.</h2>
+      <p class="sec-p">Three spots the regulars quietly compete for. Come early for the bench.</p>
+      <div class="arches">
+        <figure class="arch-card" style="margin:0">
+          <div class="arch" style="background:#CDBDEB">
+            <svg viewBox="0 0 300 400" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Illustration of an arched window above a cushioned bench with a potted plant">
+              <path d="M60 330 V176 A90 90 0 0 1 240 176 V330 Z" fill="#F7F1FF"/>
+              <circle cx="150" cy="150" r="38" fill="#F6E27A"/>
+              <path d="M150 86 V330 M60 220 H240" stroke="#2A1A12" stroke-width="5"/>
+              <rect x="30" y="330" width="240" height="26" rx="6" fill="#2A1A12"/>
+              <rect x="50" y="314" width="150" height="18" rx="9" fill="#C2263B"/>
+              <path d="M214 316 h28 l-4 -34 h-20z" fill="#E3B55E"/>
+              <g fill="#5C8F46"><ellipse cx="228" cy="262" rx="9" ry="22" transform="rotate(-24 228 262)"/><ellipse cx="238" cy="258" rx="9" ry="22" transform="rotate(22 238 258)"/><ellipse cx="228" cy="252" rx="8" ry="20"/></g>
+              <rect x="50" y="356" width="10" height="26" fill="#2A1A12"/><rect x="240" y="356" width="10" height="26" fill="#2A1A12"/>
+            </svg>
+          </div>
+          <figcaption><h3>the window bench</h3><p>Morning sun, plug sockets within reach, and a view of the street.</p></figcaption>
+        </figure>
+        <figure class="arch-card" style="margin-bottom:0;margin-inline:0">
+          <div class="arch" style="background:#F6E27A">
+            <svg viewBox="0 0 300 400" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Illustration of a glass pastry case with buns, croissants and loaves on three shelves">
+              <rect x="40" y="90" width="220" height="250" rx="16" fill="rgba(255,255,255,.6)" stroke="#2A1A12" stroke-width="5"/>
+              <path d="M40 176 H260 M40 258 H260" stroke="#2A1A12" stroke-width="4"/>
+              <g fill="#E3A24A" stroke="#B8742A" stroke-width="2"><circle cx="82" cy="150" r="22"/><circle cx="132" cy="150" r="22"/><circle cx="182" cy="150" r="22"/><circle cx="232" cy="150" r="2" opacity="0"/></g>
+              <g fill="none" stroke="#B8742A" stroke-width="3" stroke-linecap="round"><path d="M72 150 q10 -10 20 0"/><path d="M122 150 q10 -10 20 0"/><path d="M172 150 q10 -10 20 0"/></g>
+              <g fill="#EBAE58" stroke="#B8742A" stroke-width="2"><ellipse cx="86" cy="232" rx="30" ry="16" transform="rotate(-14 86 232)"/><ellipse cx="150" cy="232" rx="30" ry="16" transform="rotate(10 150 232)"/><ellipse cx="214" cy="232" rx="30" ry="16" transform="rotate(-8 214 232)"/></g>
+              <g fill="#D9A94F" stroke="#B8832F" stroke-width="2"><rect x="64" y="288" width="78" height="38" rx="18"/><rect x="156" y="288" width="78" height="38" rx="18"/></g>
+              <g stroke="#B8832F" stroke-width="3" stroke-linecap="round"><path d="M84 298 l8 14"/><path d="M104 298 l8 14"/><path d="M176 298 l8 14"/><path d="M196 298 l8 14"/></g>
+              <rect x="30" y="340" width="240" height="20" rx="6" fill="#2A1A12"/>
+              <rect x="190" y="60" width="64" height="26" rx="6" fill="#C2263B"/>
+            </svg>
+          </div>
+          <figcaption><h3>the pastry case</h3><p>Everything baked that morning. The croissants rarely last past noon.</p></figcaption>
+        </figure>
+        <figure class="arch-card" style="margin:0">
+          <div class="arch" style="background:#BDD39A">
+            <svg viewBox="0 0 300 400" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Illustration of linden leaves above a small table with two stools">
+              <defs><path id="lf" d="M0 40 C-34 14 -34 -22 -12 -26 C-4 -27 0 -22 0 -16 C0 -22 4 -27 12 -26 C34 -22 34 14 0 40 Z"/></defs>
+              <g fill="#5C8F46"><use href="#lf" transform="translate(70 90) rotate(-20) scale(1.5)"/><use href="#lf" transform="translate(150 60) rotate(8) scale(1.8)"/><use href="#lf" transform="translate(230 100) rotate(24) scale(1.4)"/></g>
+              <g fill="#7CA35B"><use href="#lf" transform="translate(110 150) rotate(30) scale(1.2)"/><use href="#lf" transform="translate(190 160) rotate(-26) scale(1.3)"/><use href="#lf" transform="translate(40 170) rotate(12) scale(1)"/><use href="#lf" transform="translate(262 176) rotate(-10) scale(1)"/></g>
+              <ellipse cx="150" cy="300" rx="84" ry="14" fill="#2A1A12"/>
+              <path d="M150 312 V372 M118 372 H182" stroke="#2A1A12" stroke-width="8" stroke-linecap="round"/>
+              <ellipse cx="62" cy="332" rx="28" ry="8" fill="#C2263B"/><path d="M42 340 V372 M82 340 V372" stroke="#2A1A12" stroke-width="6" stroke-linecap="round"/>
+              <ellipse cx="238" cy="332" rx="28" ry="8" fill="#C2263B"/><path d="M218 340 V372 M258 340 V372" stroke="#2A1A12" stroke-width="6" stroke-linecap="round"/>
+              <circle cx="132" cy="286" r="10" fill="#FAF7F0"/><circle cx="132" cy="286" r="6" fill="#7A4A2E"/>
+            </svg>
+          </div>
+          <figcaption><h3>the back garden</h3><p>Shaded by the linden tree, with dogs welcome and long, slow lunches.</p></figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="story">
+    <div class="wrap">
+      <h2 class="h2">we open at seven with the oven already hot.</h2>
+      <div class="story-cols">
+        <p>Linden started as a tiny counter and a very good oven. The bakers arrive at five, the first loaves come out before the street wakes up, and the coffee comes from a small roaster we have known for years.</p>
+        <p>We built the rest around how people actually use a cafe: somewhere to work in the morning, a long lunch with a friend, a glass of something cold when the day is over. Wi-Fi is free and so are the plug sockets by the window.</p>
+      </div>
+    </div>
+    <svg class="leaf" viewBox="-40 -42 80 90" aria-hidden="true"><path d="M0 40 C-34 14 -34 -22 -12 -26 C-4 -27 0 -22 0 -16 C0 -22 4 -27 12 -26 C34 -22 34 14 0 40 Z" fill="#9B83C9"/><path d="M0 40 V-8" stroke="#CDBDEB" stroke-width="2" fill="none"/></svg>
+  </section>
+
+  <section id="regulars">
+    <div class="wrap">
+      <h2 class="h2">regulars say.</h2>
+      <div class="quotes">
+        <figure class="quote big">
+          <blockquote>I have worked from the window bench every Thursday for two years. The flat white is always right and nobody ever rushes you.</blockquote>
+          <figcaption>Maya, coming in since 2022</figcaption>
+        </figure>
+        <figure class="quote">
+          <blockquote>The cardamom bun is the reason I leave the house on weekends.</blockquote>
+          <figcaption>Rahul, most Saturdays</figcaption>
+        </figure>
+        <figure class="quote">
+          <blockquote>Came for the coffee, stayed for the evening wine and the candles.</blockquote>
+          <figcaption>Ishita, a Friday regular</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="visit" class="visit" style="background:var(--panel)">
+    <div class="wrap">
+      <h2 class="h2">find us.</h2>
+      <div class="visit-grid">
+        <ul class="hours" id="hours" aria-label="Opening hours"></ul>
+        <div>
+          <span class="pill" id="openPill2"><i></i><span></span></span>
+          <address>
+            Linden Coffee and Bakery<br>
+            14 Mango Tree Road, Old Town<br>
+            <a href="tel:+910000000000">+91 00000 00000</a><br>
+            <a href="mailto:hello@linden.example">hello@linden.example</a>
+          </address>
+          <a class="btn" href="https://www.google.com/maps/search/?api=1&amp;query=14+Mango+Tree+Road+Old+Town" target="_blank" rel="noopener">Get directions</a>
+          <p class="small">Dogs welcome in the garden. Step-free entrance. Pre-orders are ready in about ten minutes.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-row"><span>&copy; <span id="yr"></span> Linden Coffee and Bakery</span><span>Baked daily, brewed all day</span></div>
+  </div>
+  <div class="giant" aria-hidden="true">linden</div>
+</footer>
+
+<div class="bag-pill" id="bagPill" hidden>
+  <span id="bagTxt"></span>
+  <button type="button" id="bagOpen">Review order</button>
+</div>
+
+<dialog id="bagDlg" aria-labelledby="dlgTitle">
+  <div class="dlg" id="dlgBody"></div>
+</dialog>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ---------- helpers ---------- */
+  function $(id){ return document.getElementById(id); }
+  function all(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  function inr(n){ return '\u20B9' + n.toLocaleString('en-IN'); }
+  function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function rng(seed){ var s = seed; return function(){ s = (s * 16807) % 2147483647; return s / 2147483647; }; }
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function fmt(x){
+    var h = Math.floor(x), m = Math.round((x - h) * 60), ap = h >= 12 ? 'pm' : 'am', h12 = h % 12 || 12;
+    return h12 + ':' + (m < 10 ? '0' : '') + m + ' ' + ap;
+  }
+  function phaseOf(x){ return x < 11 ? 'morning' : (x < 16 ? 'midday' : 'evening'); }
+  function nowTime(){
+    var d = new Date(), x = d.getHours() + (d.getMinutes() >= 30 ? 0.5 : 0);
+    return (x < 7 || x > 21) ? 9 : x;
+  }
+
+  /* ---------- menu data ---------- */
+  var END = 21.5;
+  var MENU = [
+    {id:'flatwhite', kind:'drink', name:'Flat white', desc:'Double ristretto with steamed whole or oat milk.', price:190, from:7, to:END},
+    {id:'cortado', kind:'drink', name:'Cortado', desc:'Equal parts espresso and warm milk, small and strong.', price:170, from:7, to:END},
+    {id:'filter', kind:'drink', name:'Batch filter', desc:'Single-origin coffee, brewed fresh and refilled all day.', price:150, from:7, to:END},
+    {id:'iced', kind:'drink', name:'Iced oat latte', desc:'Espresso over ice with oat milk and a pinch of salt.', price:210, from:7, to:END},
+    {id:'matcha', kind:'drink', name:'Matcha latte', desc:'Ceremonial matcha, whisked to order.', price:230, from:7, to:END},
+    {id:'chai', kind:'drink', name:'Masala chai', desc:'Ginger, cardamom and black tea simmered with milk.', price:130, from:7, to:END},
+    {id:'wine', kind:'drink', name:'Natural wine by the glass', desc:"Ask for today's pour. Red, orange or white.", price:420, from:16, to:END},
+    {id:'croissant', kind:'food', name:'Butter croissant', desc:'Laminated over three days. Usually gone by noon.', price:160, from:7, to:12},
+    {id:'bun', kind:'food', name:'Cardamom bun', desc:'Soft, sticky and not too sweet.', price:140, from:7, to:16},
+    {id:'toastie', kind:'food', name:'Soft egg toastie', desc:'Scrambled egg, cheddar and chilli jam on sourdough.', price:260, from:7, to:11},
+    {id:'yogurt', kind:'food', name:'Yogurt and fig bowl', desc:'Thick yogurt, roasted figs, honey and toasted seeds.', price:240, from:7, to:11},
+    {id:'focaccia', kind:'food', name:'Roast veg focaccia', desc:'Peppers, courgette and whipped feta.', price:290, from:11, to:16},
+    {id:'chicken', kind:'food', name:'Chicken and pickle sandwich', desc:'Poached chicken, house pickles and herb mayo.', price:320, from:11, to:16},
+    {id:'soup', kind:'food', name:'Tomato soup with toast', desc:'Slow-roasted tomatoes and a heel of sourdough.', price:230, from:11, to:16},
+    {id:'cheese', kind:'food', name:'Cheese and olive plate', desc:'Three cheeses, marinated olives and seeded crackers.', price:480, from:16, to:END},
+    {id:'affogato', kind:'food', name:'Affogato', desc:'Vanilla ice cream under a double shot.', price:250, from:16, to:END}
+  ];
+  var byId = {}; MENU.forEach(function(m){ byId[m.id] = m; });
+  var TABS = [{k:'now', n:'On now'}, {k:'drink', n:'Drinks'}, {k:'food', n:'Food'}];
+  var PHASE_TXT = {
+    morning:{h:'slow<br>mornings.', p:'Pastries come out of the oven from seven. Coffee starts with the first shot.'},
+    midday:{h:'long<br>lunches.', p:'Sandwiches, soup and a seat by the window for as long as you like.'},
+    evening:{h:'late<br>light.', p:'Natural wine, small plates and candles from four.'}
+  };
+  var JUMP = {morning:8.5, midday:12.5, evening:18.5};
+
+  var t = 9, curPhase = '', tab = 'now', bag = {}, placed = false;
+
+  /* ---------- terrazzo ---------- */
+  (function(){
+    var r = rng(5), cols = ['#9DB38A','#D9485B','#B9A3DE','#F3D66B','#2A1A12','#FFFFFF'], g = '', i, k;
+    for(i=0;i<140;i++){
+      var a = r() * Math.PI * 2, d = Math.sqrt(r()) * 262, cx = 280 + Math.cos(a) * d, cy = 280 + Math.sin(a) * d;
+      var n = 5 + Math.floor(r() * 3), size = 3 + r() * r() * 17 + 2, pts = '';
+      for(k=0;k<n;k++){
+        var ang = k / n * Math.PI * 2 + r() * 0.6, rad = size * (0.6 + r() * 0.5);
+        pts += (cx + Math.cos(ang) * rad).toFixed(1) + ',' + (cy + Math.sin(ang) * rad).toFixed(1) + ' ';
+      }
+      g += '<polygon points="' + pts + '" fill="' + cols[Math.floor(r() * cols.length)] + '" opacity=".88"/>';
+    }
+    $('chips').innerHTML = g;
+  })();
+
+  /* ---------- time of day ---------- */
+  function updateLight(){
+    var ph = phaseOf(t), d = t - 13.5, ad = Math.abs(d), dx, dy, blur, op;
+    if(ph === 'evening'){ dx = -7; dy = 11; blur = 9; op = 0.55; }
+    else { dx = -d * 2.4; dy = 7 + ad * 1.1; blur = 3 + ad * 0.9; op = 0.28; }
+    var s = $('shd');
+    s.setAttribute('dx', dx.toFixed(1)); s.setAttribute('dy', dy.toFixed(1));
+    s.setAttribute('stdDeviation', blur.toFixed(1)); s.setAttribute('flood-opacity', op);
+    $('light').style.opacity = ph === 'evening' ? 0 : (0.14 + 0.34 * (1 - Math.min(1, ad / 8))).toFixed(2);
+    $('panes').setAttribute('transform', 'translate(' + (d * 26).toFixed(1) + ' 0) skewX(-12)');
+    $('glowC').style.opacity = ph === 'evening' ? 1 : 0;
+  }
+  function applyPhase(ph){
+    if(ph === curPhase) return;
+    var first = !curPhase; curPhase = ph;
+    $('hero').dataset.phase = ph;
+    all('.set').forEach(function(s){ s.classList.toggle('on', s.dataset.set === ph); });
+    var apply = function(){
+      $('hl').innerHTML = PHASE_TXT[ph].h;
+      $('lede').textContent = PHASE_TXT[ph].p;
+      $('txt').classList.remove('swap');
+    };
+    if(first || reduce){ apply(); }
+    else { $('txt').classList.add('swap'); setTimeout(apply, 220); }
+  }
+  function setTime(x){
+    x = Math.min(21, Math.max(7, Math.round(x * 2) / 2));
+    t = x;
+    var rg = $('range');
+    rg.value = x * 2;
+    rg.style.setProperty('--pct', ((x - 7) / 14 * 100) + '%');
+    rg.setAttribute('aria-valuetext', fmt(x));
+    $('clockOut').textContent = fmt(x);
+    $('mClock').textContent = fmt(x);
+    applyPhase(phaseOf(x));
+    updateLight();
+    all('[data-jump]').forEach(function(c){ c.setAttribute('aria-pressed', c.dataset.jump === phaseOf(x) ? 'true' : 'false'); });
+    renderMenu();
+  }
+  $('range').addEventListener('input', function(){ setTime(this.value / 2); });
+  $('nowBtn').addEventListener('click', function(){ setTime(nowTime()); });
+  all('[data-jump]').forEach(function(c){
+    c.addEventListener('click', function(){ setTime(JUMP[c.dataset.jump]); });
+  });
+
+  /* ---------- menu ---------- */
+  function avail(m){ return t >= m.from && t < m.to; }
+  function noteFor(m){
+    if(t < m.from) return 'From ' + fmt(m.from);
+    if(t >= m.to) return 'Finished for today';
+    return m.to < END ? 'Until ' + fmt(m.to) : (m.from > 7 ? 'From ' + fmt(m.from) : 'All day');
+  }
+  function ctlHTML(id){
+    var q = bag[id] || 0, n = esc(byId[id].name);
+    if(!q) return '<button type="button" class="add" data-act="add" aria-label="Add ' + n + ' to bag">Add</button>';
+    return '<div class="stepper" role="group" aria-label="' + n + ' quantity">' +
+      '<button type="button" data-act="dec" aria-label="Remove one ' + n + '">&minus;</button><output>' + q + '</output>' +
+      '<button type="button" data-act="inc" aria-label="Add one ' + n + '">+</button></div>';
+  }
+  function renderTabs(){
+    var el = $('tabs'); el.innerHTML = '';
+    TABS.forEach(function(tb, i){
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'tab'; b.setAttribute('role', 'tab');
+      b.setAttribute('aria-selected', tb.k === tab ? 'true' : 'false');
+      b.tabIndex = tb.k === tab ? 0 : -1;
+      b.textContent = tb.n;
+      b.addEventListener('click', function(){ tab = tb.k; renderTabs(); renderMenu(); });
+      b.addEventListener('keydown', function(e){
+        if(e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+        e.preventDefault();
+        var idx = TABS.map(function(x){ return x.k; }).indexOf(tab);
+        idx = (idx + (e.key === 'ArrowRight' ? 1 : TABS.length - 1)) % TABS.length;
+        tab = TABS[idx].k; renderTabs(); renderMenu(); el.children[idx].focus();
+      });
+      el.appendChild(b);
+    });
+  }
+  function renderMenu(){
+    var list = MENU.filter(function(m){ return tab === 'now' ? avail(m) : m.kind === tab; });
+    $('menuList').innerHTML = list.length ? list.map(function(m){
+      var on = avail(m);
+      return '<li class="mi' + (on ? '' : ' off') + '" data-id="' + m.id + '">' +
+        '<div class="mi-top"><h3>' + esc(m.name) + '</h3><span class="mi-price">' + inr(m.price) + '</span></div>' +
+        '<p class="mi-desc">' + esc(m.desc) + '</p>' +
+        '<div class="mi-foot"><span class="mi-note">' + noteFor(m) + '</span>' +
+        (on ? '<div class="ctl" id="ctl-' + m.id + '">' + ctlHTML(m.id) + '</div>' : '') + '</div></li>';
+    }).join('') : '<li class="empty">Nothing is being served at this time. Try another time of day.</li>';
+  }
+  $('menuList').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-act]'); if(!b) return;
+    var id = b.closest('.mi').dataset.id, act = b.dataset.act;
+    changeQty(id, act === 'dec' ? -1 : 1, true);
+  });
+
+  /* ---------- bag ---------- */
+  function totals(){
+    var c = 0, sum = 0;
+    Object.keys(bag).forEach(function(id){ c += bag[id]; sum += bag[id] * byId[id].price; });
+    return {count:c, total:sum};
+  }
+  function changeQty(id, delta, fromMenu){
+    var q = Math.max(0, (bag[id] || 0) + delta);
+    if(q) bag[id] = q; else delete bag[id];
+    var ctl = $('ctl-' + id);
+    if(ctl){
+      ctl.innerHTML = ctlHTML(id);
+      if(fromMenu){
+        var f = ctl.querySelector(q ? '[data-act="inc"]' : '[data-act="add"]'); if(f) f.focus();
+      }
+    }
+    renderPill();
+  }
+  function renderPill(){
+    var tt = totals();
+    $('bagPill').hidden = tt.count === 0;
+    $('bagTxt').textContent = 'Bag: ' + tt.count + (tt.count === 1 ? ' item' : ' items') + ', ' + inr(tt.total);
+  }
+  var dlg = $('bagDlg');
+  function openDlg(){ if(dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', ''); }
+  function closeDlg(){ if(dlg.close) dlg.close(); else dlg.removeAttribute('open'); }
+  dlg.addEventListener('click', function(e){ if(e.target === dlg) closeDlg(); });
+  dlg.addEventListener('close', function(){
+    if(placed){ bag = {}; placed = false; renderPill(); renderMenu(); }
+  });
+  function renderBag(focusSel){
+    var ids = Object.keys(bag), tt = totals(), body = $('dlgBody');
+    if(!ids.length){
+      body.innerHTML = '<button type="button" class="x" data-close aria-label="Close">&times;</button><h3 id="dlgTitle">your bag</h3>' +
+        '<p class="note">Your bag is empty. Add something from the menu.</p><button type="button" class="btn ghost" data-close>Back to the menu</button>';
+      return;
+    }
+    body.innerHTML =
+      '<button type="button" class="x" data-close aria-label="Close">&times;</button><h3 id="dlgTitle">your bag</h3>' +
+      '<ul class="bag-list">' + ids.map(function(id){
+        var m = byId[id];
+        return '<li><span class="n">' + esc(m.name) + '</span><div class="stepper" role="group" aria-label="' + esc(m.name) + ' quantity">' +
+          '<button type="button" data-b="dec" data-id="' + id + '" aria-label="Remove one ' + esc(m.name) + '">&minus;</button><output>' + bag[id] + '</output>' +
+          '<button type="button" data-b="inc" data-id="' + id + '" aria-label="Add one ' + esc(m.name) + '">+</button></div>' +
+          '<span class="mi-price">' + inr(m.price * bag[id]) + '</span></li>';
+      }).join('') + '</ul>' +
+      '<div class="total"><span>Total</span><span>' + inr(tt.total) + '</span></div>' +
+      '<fieldset><legend>Pickup</legend><div class="radios">' +
+      '<label><input type="radio" name="pk" value="in about 10 minutes" checked> In about 10 minutes</label>' +
+      '<label><input type="radio" name="pk" value="in about 30 minutes"> In about 30 minutes</label>' +
+      '<label><input type="radio" name="pk" value="in about an hour"> In about an hour</label></div></fieldset>' +
+      '<label class="fld"><span>Name for the order</span><input type="text" id="oName" autocomplete="name"></label>' +
+      '<div class="err" id="oErr" role="alert" hidden></div>' +
+      '<button type="button" class="btn cherry" id="place">Place order</button>' +
+      '<p class="note">You pay at the counter when you collect.</p>';
+    if(focusSel){ var f = body.querySelector(focusSel) || body.querySelector('[data-b]'); if(f) f.focus(); }
+  }
+  $('dlgBody').addEventListener('click', function(e){
+    if(e.target.closest('[data-close]')){ closeDlg(); return; }
+    var b = e.target.closest('[data-b]');
+    if(b){
+      var id = b.dataset.id, act = b.dataset.b;
+      var q = Math.max(0, (bag[id] || 0) + (act === 'inc' ? 1 : -1));
+      if(q) bag[id] = q; else delete bag[id];
+      renderPill(); renderMenu();
+      renderBag(q ? '[data-b="' + act + '"][data-id="' + id + '"]' : null);
+      return;
+    }
+    if(e.target.closest('#place')){
+      var name = $('oName').value.trim(), err = $('oErr');
+      if(!name){ err.textContent = 'Enter a name so we know who to call when it is ready.'; err.hidden = false; $('oName').focus(); return; }
+      var pk = document.querySelector('input[name="pk"]:checked').value, tt = totals();
+      placed = true;
+      $('dlgBody').innerHTML =
+        '<h3 id="dlgTitle">thanks, ' + esc(name.split(' ')[0].toLowerCase()) + '.</h3>' +
+        '<p class="note" style="font-size:1.15rem;color:var(--ink);margin-top:14px">Your order of ' + tt.count + (tt.count === 1 ? ' item' : ' items') + ' (' + inr(tt.total) + ') is in. It will be ready ' + esc(pk) + '. Pay at the counter when you collect.</p>' +
+        '<button type="button" class="btn" data-close>Done</button>';
+      var d = dlg.querySelector('[data-close]'); if(d) d.focus();
+    }
+  });
+  $('bagOpen').addEventListener('click', function(){ renderBag('[data-b]'); openDlg(); });
+
+  /* ---------- visit ---------- */
+  var DAYS = [
+    {n:'Monday', o:7, c:21}, {n:'Tuesday', o:7, c:21}, {n:'Wednesday', o:7, c:21}, {n:'Thursday', o:7, c:21}, {n:'Friday', o:7, c:21},
+    {n:'Saturday', o:8, c:22}, {n:'Sunday', o:8, c:22}
+  ];
+  function hrs(h){ return (h % 12 || 12) + (h >= 12 ? ' pm' : ' am'); }
+  function renderVisit(){
+    var now = new Date(), idx = (now.getDay() + 6) % 7, d = DAYS[idx];
+    $('hours').innerHTML = DAYS.map(function(x, i){
+      return '<li' + (i === idx ? ' aria-current="date"' : '') + '><span>' + x.n + '</span><span>' + hrs(x.o) + ' to ' + hrs(x.c) + '</span></li>';
+    }).join('');
+    var h = now.getHours() + now.getMinutes() / 60, open = h >= d.o && h < d.c;
+    var txt = open ? 'Open now, until ' + hrs(d.c) : (h < d.o ? 'Closed now, opens at ' + hrs(d.o) : 'Closed now, opens tomorrow');
+    ['openPill', 'openPill2'].forEach(function(id){
+      var el = $(id); el.className = 'pill' + (open ? ' open' : ''); el.lastChild.textContent = txt;
+    });
+  }
+
+  /* ---------- init ---------- */
+  $('yr').textContent = new Date().getFullYear();
+  renderTabs();
+  setTime(nowTime());
+  renderPill();
+  renderVisit();
+})();
+</script>
+</body>
+</html>
