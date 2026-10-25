@@ -28,6 +28,39 @@
   }
   html{scroll-behavior:smooth; scroll-padding-top:calc(env(safe-area-inset-top,0px) + 16px)}
   *,*::before,*::after{box-sizing:border-box}
+
+  /* ---------- custom scrollbars ---------- */
+  :root{ --sb-track:var(--panel); --sb-thumb:var(--cherry); --sb-thumb-hover:#9E1B2F }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --sb-thumb-hover:#E0455A } }
+  :root[data-theme="dark"]{ --sb-thumb-hover:#E0455A }
+  html{scrollbar-gutter:stable}
+
+  /* Chrome, Edge, Safari */
+  ::-webkit-scrollbar{width:14px; height:14px}
+  ::-webkit-scrollbar-button{display:none; width:0; height:0}
+  ::-webkit-scrollbar-corner{background:transparent}
+  ::-webkit-scrollbar-track{background:var(--sb-track); border-left:1px solid var(--line)}
+  ::-webkit-scrollbar-thumb{
+    background:var(--sb-thumb); border-radius:999px;
+    border:3px solid var(--sb-track); background-clip:padding-box; min-height:48px;
+    transition:background-color .2s ease;
+  }
+  ::-webkit-scrollbar-thumb:hover{background:var(--sb-thumb-hover); background-clip:padding-box}
+  ::-webkit-scrollbar-thumb:active{background:var(--ink); background-clip:padding-box}
+
+  /* Firefox and anything without ::-webkit-scrollbar */
+  @supports not selector(::-webkit-scrollbar){
+    *{scrollbar-width:thin; scrollbar-color:var(--sb-thumb) var(--sb-track)}
+  }
+
+  /* the bag: slim floating pill, clear of the rounded corners */
+  dialog{overscroll-behavior:contain; scrollbar-gutter:auto}
+  dialog::-webkit-scrollbar{width:12px}
+  dialog::-webkit-scrollbar-track{background:transparent; border-left:0; margin:22px 0}
+  dialog::-webkit-scrollbar-thumb{background:var(--sb-thumb); border:3px solid transparent; background-clip:padding-box}
+  @supports not selector(::-webkit-scrollbar){
+    dialog{scrollbar-color:var(--sb-thumb) transparent}
+  }
   body{margin:0; background:var(--bg); color:var(--ink); font:400 1.1875rem/1.62 var(--text); -webkit-font-smoothing:antialiased}
   h1,h2,h3{font-family:var(--display); font-weight:800; font-stretch:75%; letter-spacing:-.02em; line-height:.92; margin:0}
   p{margin:0}
